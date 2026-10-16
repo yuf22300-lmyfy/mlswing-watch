@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML-Swing 手册 · 回测档案</title>
+<script src="echarts.min.js"></script>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --line:#30363d; --txt:#e6edf3; --dim:#8b949e; --up:#3fb950; --dn:#f85149; --acc:#58a6ff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--txt); font-family:"Microsoft YaHei",system-ui,sans-serif; font-size:14px; }
+  .wrap { max-width:1180px; margin:0 auto; padding:20px 16px 60px; }
+  h1 { font-size:22px; margin:14px 0 4px; }
+  .sub { color:var(--dim); font-size:13px; margin-bottom:18px; }
+  h2 { font-size:16px; margin:28px 0 12px; border-left:3px solid var(--acc); padding-left:10px; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .kpi .v { font-size:22px; font-weight:700; margin-top:4px; }
+  .kpi .k { color:var(--dim); font-size:12px; }
+  .chart { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px; height:360px; margin-bottom:12px; }
+  .chart2 { height:260px; }
+  .filters { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+  select { background:var(--card); color:var(--txt); border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:13px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border-radius:10px; overflow:hidden; font-size:13px; }
+  th { position:sticky; top:0; background:#1c2129; color:var(--dim); text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); cursor:pointer; white-space:nowrap; }
+  td { padding:6px 10px; border-bottom:1px solid #21262d; white-space:nowrap; }
+  tr:hover td { background:#1c2129; }
+  .W { color:var(--up); font-weight:700; } .L { color:var(--dn); } .BE { color:var(--dim); }
+  .side-L { color:var(--up); } .side-S { color:var(--dn); }
+  .tbl-box { max-height:620px; overflow:auto; border:1px solid var(--line); border-radius:10px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; line-height:1.8; }
+  .card b { color:var(--acc); }
+  .tag { display:inline-block; background:#21262d; border:1px solid var(--line); border-radius:5px; padding:1px 7px; font-size:12px; margin:2px 4px 2px 0; }
+  .note { color:var(--dim); font-size:12px; line-height:1.7; }
+  .foot { margin-top:36px; color:var(--dim); font-size:12px; border-top:1px solid var(--line); padding-top:14px; line-height:1.8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ML-Swing 手册 <span style="font-size:13px;color:var(--dim)">Martin Luk 波段体系 · 加密移植版 · 回测档案</span></h1>
+  <div class="sub">血统:Qullamaggie 流(美股)→ Martin Luk(USIC 2025 冠军 +969%,主办方审计)→ 8 币永续移植 | 回测窗口 2020-01 ~ 2026-10 | 更新 <span id="upd"></span></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <h2>权益曲线(1% 风险/单,逐笔复利)</h2>
+  <div class="chart" id="eqChart"></div>
+  <div class="chart chart2" id="yrChart"></div>
+
+  <h2>交易流水(<span id="nTr"></span> 笔,点表头排序)</h2>
+  <div class="filters" id="filters"></div>
+  <div class="tbl-box">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="i">#</th><th data-k="d">日期</th><th data-k="coin">币</th><th data-k="side">方向</th>
+        <th data-k="setup">买法</th><th data-k="entry">入场</th><th data-k="exit">出场</th>
+        <th data-k="hold">持有天</th><th data-k="outcome">结果</th><th data-k="r">R</th><th data-k="eq">累计权益</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+
+  <h2>策略规则(回测实现口径)</h2>
+  <div class="card" id="rules"></div>
+
+  <h2>审计轨迹与方法论</h2>
+  <div class="card" id="audit"></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+const M = ML.meta, T = ML.trades;
+document.getElementById("upd").textContent = M.updated;
+document.getElementById("nTr").textContent = M.trades;
+
+// KPIs
+const kpis = [
+  ["复利年化(1%风险)", "+" + M.cagr1 + "%", "var(--acc)"],
+  ["最大回撤", M.maxDD + "%", "var(--dn)"],
+  ["交易频率", M.tpy + " 笔/年", ""],
+  ["胜率", M.wr + "%", ""],
+  ["平均盈利", M.avgWinR + "R", "var(--up)"],
+  ["总 R / 笔数", M.sumR + "R / " + M.trades + "笔", ""],
+  ["模拟窗(3年)", M.isR + "R / " + M.isTrades + "笔", ""],
+  ["实考窗(2年)", M.oosR + "R / " + M.oosTrades + "笔", "var(--acc)"],
+  [M.years + " 年终值(1%)", M.finalEq + "x", "var(--up)"],
+];
+document.getElementById("kpis").innerHTML = kpis.map(k =>
+  `<div class="kpi"><div class="k">${k[0]}</div><div class="v" style="color:${k[2]||"var(--txt)"}">${k[1]}</div></div>`).join("");
+
+// equity chart
+const eqC = echarts.init(document.getElementById("eqChart"));
+eqC.setOption({
+  backgroundColor:"transparent", textStyle:{color:"#8b949e"},
+  tooltip:{trigger:"axis", formatter:p=>`${p[0].name}<br>权益: ${p[0].value}x`},
+  grid:{left:50,right:20,top:20,bottom:30},
+  xAxis:{type:"category", data:T.map(t=>t.d), axisLabel:{color:"#8b949e"}},
+  yAxis:{type:"log", axisLabel:{color:"#8b949e", formatter:v=>v+"x"}, splitLine:{lineStyle:{color:"#21262d"}}},
+  series:[{type:"line", data:T.map(t=>t.eq), showSymbol:false, lineStyle:{color:"#58a6ff",width:1.5},
+    areaStyle:{color:"rgba(88,166,255,0.08)"}}]
+});
+const yrC = echarts.init(document.getElementById("yrChart"));
+const yk = Object.keys(M.yearly);
+yrC.setOption({
+  backgroundColor:"transparent", textStyle:{color:"#8b949e"},
+  tooltip:{}, grid:{left:40,right:20,top:20,bottom:30},
+  xAxis:{type:"category", data:yk, axisLabel:{color:"#8b949e"}},
+  yAxis:{axisLabel:{color:"#8b949e"}, splitLine:{lineStyle:{color:"#21262d"}}},
+  series:[{type:"bar", data:yk.map(y=>({value:M.yearly[y], itemStyle:{color:M.yearly[y]>=0?"#3fb950":"#f85149"}}))}]
+});
+window.addEventListener("resize",()=>{eqC.resize();yrC.resize();});
+
+// table + filters
+const SETUP_NAME = {B:"突破", P:"回调", Bs:"突破·空", Ps:"回调·空", WICK:"接针"};
+let filt = {coin:"", side:"", setup:"", outcome:"", year:""};
+const fBox = document.getElementById("filters");
+const mk = (id, label, opts) => {
+  const s = document.createElement("select"); s.id = id;
+  s.innerHTML = `<option value="">${label}:全部</option>` + opts.map(o=>`<option>${o}</option>`).join("");
+  s.onchange = ()=>{filt[id]=s.value; render();}; fBox.appendChild(s);
+};
+mk("coin","币",[...new Set(T.map(t=>t.coin))].sort());
+mk("side","方向",["L","S"]);
+mk("setup","买法",[...new Set(T.map(t=>t.setup))]);
+mk("outcome","结果",["W","L","BE"]);
+mk("year","年份",[...new Set(T.map(t=>t.d.slice(0,4)))].sort());
+let sortK="i", asc=true;
+document.querySelectorAll("th").forEach(th=>th.onclick=()=>{const k=th.dataset.k; asc = sortK===k?!asc:false; sortK=k; render();});
+function rows(){
+  let list = T.map((t,i)=>({...t,i:i+1})).filter(t=>
+    (!filt.coin||t.coin===filt.coin)&&(!filt.side||t.side===filt.side)&&(!filt.setup||t.setup===filt.setup)&&
+    (!filt.outcome||t.outcome===filt.outcome)&&(!filt.year||t.d.slice(0,4)===filt.year));
+  const key = t=>({i:t.i,d:t.d,coin:t.coin,side:t.side,setup:t.setup,entry:t.entry??0,exit:t.exit??0,hold:t.hold??-1,outcome:t.outcome,r:t.r,eq:t.eq})[sortK];
+  list.sort((a,b)=>{const x=key(a),y=key(b);return (x<y?-1:x>y?1:0)*(asc?1:-1);});
+  return list;
+}
+function render(){
+  const list = rows();
+  document.getElementById("tb").innerHTML = list.map(t=>`<tr>
+    <td>${t.i}</td><td>${t.d}</td><td><b>${t.coin}</b></td>
+    <td class="side-${t.side}">${t.side==="L"?"多":"空"}</td>
+    <td>${SETUP_NAME[t.setup]||t.setup}</td>
+    <td>${t.entry??"—"}</td><td>${t.exit??"—"}</td><td>${t.hold??"—"}</td>
+    <td class="${t.outcome}">${t.outcome==="W"?"盈":t.outcome==="L"?"亏":"平"}</td>
+    <td class="${t.r>0?"W":"L"}">${t.r>0?"+":""}${t.r.toFixed(2)}</td>
+    <td>${t.eq.toFixed(2)}x</td></tr>`).join("");
+}
+render();
+
+// rules
+document.getElementById("rules").innerHTML = `
+<b>宇宙</b>:8 个 OKX 永续老币(BTC/ETH/SOL/BNB/XRP/DOGE/AVAX/LINK),每币同时至多 1 仓,1H 触发 + 日线语境。<br>
+<b>买法① 突破(B)</b>:过去 10 天区间≤12% 且收盘站上 9EMA、9EMA 走平向上 → 当天价格突破<b>昨日最高</b>即进场(不等整理区上沿,为止损近)。<br>
+<b>买法② 回调(P)</b>:9EMA&gt;21EMA&gt;50EMA 且都在上升,昨日回落触及 9EMA 带且收回企稳 → 当天首根突破<b>前一根 1H K 线最高</b>时进场(①+②约占 2/3 交易)。<br>
+<b>买法③ 接针(WICK)</b>:4 小时内闪跌≥3%(BTC)/3%(LINK)/4%(DOGE),价格在 50 日线上方且未破 30 日结构,针尖企稳拐点进场(来源:接针策略,详见审计轨迹)。<br>
+<b>空头镜像(Bs/Ps)</b>:EMA 空头排列时镜像做跌,补熊年收益。<br>
+<b>指数闸门(G1)</b>:BTC 日线收盘 &gt; max(9EMA,21EMA) 才开多单,&lt; min 才开空单——模拟窗选型、实考窗验证(+12%R,回撤 40%→28%)。<br>
+<b>止损</b>:突破单放当日至今最低点;回调单放回调低点;接针放针尖下方 0.75%;距离&gt;3% 直接放弃。标记价格口径。<br>
+<b>止盈</b>:+3R 先出 15%;第 3 天起 9EMA 升过成本 → 止损推保本;其余用日线 9EMA 跟踪(下方 0.5%);40 天强制离场。<br>
+<b>仓位</b>:倒算制——打到止损亏账户的 0.5%/1%,本档案权益曲线按 1% 展示。费率:taker 0.05%/边已计入。`;
+
+// audit trail
+document.getElementById("audit").innerHTML = `
+<b>来源链</b>:Qullamaggie(美股波段,多年可查实盘)→ Martin Luk(香港,USIC 2024 +283% / 2025 +969.8% 破纪录,主办方审计账户,X:@martinlukkt)→ Speculation Lab 视频转述(完整规则)→ 本机加密移植回测。<br>
+<b>本档案全部数字为回测</b>,非实盘。移植时未包含:美股扫描器选股层、EP 财报跳空买法、940 笔/年的执行强度——原版 alpha 的大头在选股与执行层。<br>
+<b>三连案背景</b>(同频道系列审计):浪浪体系(低胜率高赔付,真骨架,战绩=幸存者)/ 鹰猎系统(1:1 赔率,机械复刻 9 组全负,第 24 场不通过)/ Martin 体系(本案:战绩第三方验证 + 机械复刻盈利 + 内部统计自洽:他 22% 胜率 7:1 赔付 ↔ 本回测 26% 胜率 7.3R)。<br>
+<b>模块选型纪律</b>(模拟窗 2021-10~2024-10 选,实考窗 2024-10~2026-10 冻结验证):指数闸门 G1 采纳(同 R 砍 44% 笔数,实考 +12%);资金费过滤无增益<b>弃用</b>;接针模块因数据仅覆盖近段无法选型(有轻度选择泄漏,OOS +47R 打折看)。<br>
+<b>口径与折扣</b>:8 币老宇宙(幸存者偏差轻但存在)/ 未计滑点与资金费 / 4H 粒度会砍半捕获(本档为 1H)/ 尾部依赖:top5 笔约占 40% 利润。对折保守预期依然成立(235% → 100%+)。<br>
+<b>复现</b>:OKX 全历史数据(E:\\zcode-projects\\ghost-bt\\data),引擎 workspace/_martin_bt.js · _martin_short.js · _wick_bt.js · _martin_opts.js,一条命令重跑。`;
+
+document.getElementById("foot").innerHTML =
+`免责声明:本页为历史数据回测档案,不构成任何投资建议。合约交易风险极高,大概率亏损。<br>
+策略:ML-Swing v1(Martin Luk 体系加密移植+G1闸门+多空+接针) · 数据:OKX 永续 1H/分钟线 · 生成:ZCode 回测实验室 2026-10`;
+</script>
+</body>
+</html>
