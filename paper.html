@@ -35,7 +35,7 @@
 <body>
 <div class="wrap">
   <h1>ML-Swing 实测手册 <span style="font-size:13px;color:var(--dim)">模拟盘 · 1,000U · 1% 风险/单</span></h1>
-  <div class="sub"><a href="index.html">← 回测手册(905笔档案)</a> · 引擎每 15 分钟扫描,数据经 git 推送刷新(Pages 缓存约 1-10 分钟) · 开始于 <span id="st"></span> · 最后扫描 <span id="upd"></span></div>
+  <div class="sub"><a href="index.html">← 回测手册(905笔档案)</a> · 引擎每 5 分钟扫描,数据经 git 推送刷新(Pages 缓存约 1-10 分钟) · 开始于 <span id="st"></span> · 最后扫描 <span id="upd"></span></div>
 
   <div class="kpis" id="kpis"></div>
 
@@ -88,7 +88,7 @@ document.getElementById("tbOpen").innerHTML = P.length ? P.map(p=>`<tr>
   <td class="${p.openR>0?"W":"L"}">${p.openR>0?"+":""}${p.openR}</td>
   <td class="${p.uPnl>0?"W":"L"}">${p.uPnl>0?"+":""}${p.uPnl}U</td>
   <td>${p.partial?"✓已减":"—"}</td><td>${p.be?"✓":"—"}</td></tr>`).join("")
-  : `<tr><td colspan="11" style="color:var(--dim);text-align:center;padding:22px">空仓 watching —— 引擎每 15 分钟检查突破/回调信号${M.gate.includes("中性")?"(当前中性区,闸门关闭)":""}</td></tr>`;
+  : `<tr><td colspan="11" style="color:var(--dim);text-align:center;padding:22px">空仓 watching —— 引擎每 5 分钟检查突破/回调信号${M.gate.includes("中性")?"(当前中性区,闸门关闭)":""}</td></tr>`;
 document.getElementById("tbCl").innerHTML = C.length ? C.map(t=>`<tr>
   <td>${t.d}</td><td>${t.exitD}</td><td><b>${t.coin}</b></td><td class="side-${t.side}">${t.side==="L"?"多":"空"}</td>
   <td>${SETUP[t.setup]||t.setup}</td><td>${t.entry}</td><td>${t.exit}</td><td>${t.hold}</td>
@@ -98,7 +98,7 @@ document.getElementById("tbCl").innerHTML = C.length ? C.map(t=>`<tr>
 document.getElementById("foot").innerHTML =
 `规则与回测手册完全同源(1H 突破/回调 + 空头镜像 + G1 指数闸门;接针模块 v1.1 待加)。<br>
 纸面验收标准:两周后逐笔对账——成交价 vs 信号价(滑点)、R 分布 vs 回测(26%胜率/7.3R均赢)、闸门行为。<br>
-引擎:workspace/_mlswing_live/mlswing_paper.js · 计划任务 MLSwing_Paper 每15分钟 · 状态 state.json · 免责:模拟数据,非投资建议。`;
+引擎:workspace/_mlswing_live/mlswing_paper.js · 计划任务 MLSwing_Paper 每5分钟 · 状态 state.json · 免责:模拟数据,非投资建议。`;
 </script>
 </body>
 </html>
