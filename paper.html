@@ -96,7 +96,7 @@ document.getElementById("tbCl").innerHTML = C.length ? C.map(t=>`<tr>
   <td class="${t.r>0?"W":"L"}">${t.r>0?"+":""}${t.r}</td></tr>`).join("")
   : `<tr><td colspan="10" style="color:var(--dim);text-align:center;padding:22px">尚无平仓 —— 模拟盘刚开始,等第一笔信号</td></tr>`;
 document.getElementById("foot").innerHTML =
-`规则与回测手册同源并升级(2026-10-17):20币宇宙·只做30日动量前8(4H扩容实验验证:每笔质量0.47R→0.90R翻倍)+1H突破/回调+空头镜像+G1指数闸门;接针已移除。TOP8名单见扫描日志,每次开仓仅限动量前8,持仓管理不受限。<br>
+`规则与回测档案完全同构:8币宇宙(BTC/ETH/SOL/BNB/XRP/DOGE/AVAX/LINK)+1H突破/回调+空头镜像+G1指数闸门;接针已移除。(20币+动量前8经1H全量回测否决:+151%/DD38% vs 8币+249%/DD29%,详见档案审计轨迹)<br>
 纸面验收标准:两周后逐笔对账——成交价 vs 信号价(滑点)、R 分布 vs 回测(26%胜率/7.3R均赢)、闸门行为。<br>
 引擎:workspace/_mlswing_live/mlswing_paper.js · 计划任务 MLSwing_Paper 每5分钟 · 状态 state.json · 免责:模拟数据,非投资建议。`;
 </script>
