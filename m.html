@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<title>ML-Swing · 手机手册</title>
+<script src="echarts.min.js"></script>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --line:#30363d; --txt:#e6edf3; --dim:#8b949e; --up:#3fb950; --dn:#f85149; --acc:#58a6ff; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body { background:var(--bg); color:var(--txt); font-family:"Microsoft YaHei",-apple-system,sans-serif; font-size:15px; }
+  .wrap { max-width:520px; margin:0 auto; padding:14px 12px 40px; }
+  .hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .hd .t { font-size:17px; font-weight:700; }
+  .hd .u { color:var(--dim); font-size:11px; }
+  .hero { background:linear-gradient(145deg,#161b22,#1a2233); border:1px solid var(--line); border-radius:16px; padding:18px 16px; text-align:center; margin-bottom:10px; }
+  .hero .eq { font-size:34px; font-weight:800; letter-spacing:.5px; }
+  .hero .sub { color:var(--dim); font-size:12px; margin-top:4px; }
+  .pill { display:inline-block; border-radius:12px; padding:2px 12px; font-size:12px; margin-top:8px; border:1px solid var(--line); }
+  .pill.hot { color:#f85149; border-color:#f8514966; } .pill.cold { color:#3fb950; border-color:#3fb95066; } .pill.mid { color:#8b949e; }
+  .chips { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+  .chip { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 6px; text-align:center; }
+  .chip .v { font-size:15px; font-weight:700; margin-top:3px; }
+  .chip .k { color:var(--dim); font-size:10.5px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:10px; }
+  .sec { font-size:13px; color:var(--dim); margin:12px 2px 8px; display:flex; justify-content:space-between; }
+  .pos { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:8px; }
+  .pos .r1 { display:flex; justify-content:space-between; align-items:center; }
+  .pos .coin { font-size:17px; font-weight:800; }
+  .badge { font-size:11px; border-radius:8px; padding:1px 8px; font-weight:700; }
+  .badge.L { background:#3fb95022; color:var(--up); } .badge.S { background:#f8514922; color:var(--dn); }
+  .pos .openR { font-size:22px; font-weight:800; }
+  .pos .r2 { display:flex; justify-content:space-between; color:var(--dim); font-size:11.5px; margin-top:6px; }
+  .tags { margin-top:6px; } .tag { display:inline-block; font-size:10px; border:1px solid var(--line); border-radius:6px; padding:1px 6px; color:var(--dim); margin-right:4px; }
+  .row { display:flex; justify-content:space-between; align-items:center; padding:9px 2px; border-bottom:1px solid #21262d; font-size:13.5px; }
+  .row:last-child { border-bottom:none; }
+  .row .r { font-weight:800; font-size:15px; }
+  #chart { height:170px; }
+  .empty { color:var(--dim); text-align:center; padding:16px; font-size:13px; }
+  .foot { color:var(--dim); font-size:11px; margin-top:16px; line-height:1.8; text-align:center; }
+  .foot a { color:var(--acc); text-decoration:none; }
+  .W { color:var(--up); } .L { color:var(--dn); } .BE { color:var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd"><div class="t">ML-Swing <span style="color:var(--dim);font-size:12px">模拟盘 · 1000U · 1%</span></div><div class="u" id="upd"></div></div>
+  <div class="hero">
+    <div class="eq" id="eq"></div>
+    <div class="sub" id="ret"></div>
+    <div class="pill" id="gate"></div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="card"><div id="chart"></div></div>
+  <div class="sec"><span>当前持仓</span><span id="nOpen"></span></div>
+  <div id="positions"></div>
+  <div class="sec"><span>最近平仓</span><span id="nCl"></span></div>
+  <div class="card" id="closed" style="padding:4px 12px"></div>
+  <div class="foot">
+    影子日志: 被拒<span id="nSh">0</span>笔 · 假设ΣR <span id="shR">0</span><br>
+    每5分钟自动刷新 · <a href="paper.html">电脑版</a> · <a href="index.html">回测档案</a><br>
+    引擎每5分钟扫描 · 5仓上限 · 8币 · 免责:模拟数据
+  </div>
+</div>
+<script src="paper_data.js"></script>
+<script>
+const M = PAPER.meta, P = PAPER.positions, C = PAPER.closed, S = PAPER.equitySeries;
+const SETUP = {B:"突破", P:"回调", Bs:"突破·空", Ps:"回调·空", WICK:"接针"};
+document.getElementById("upd").textContent = M.updated.replace("T"," ").slice(5,16);
+const ret = (M.equity / M.start - 1) * 100;
+document.getElementById("eq").textContent = M.equity.toFixed(2) + " U";
+document.getElementById("ret").textContent = (ret>=0?"+":"") + ret.toFixed(2) + "% · ΣR " + (M.sumR>=0?"+":"") + M.sumR + " · 胜率 " + (M.wr===null?"—":M.wr+"%");
+const gp = M.gate.includes("多头") ? ["多头区·可开多","hot"] : M.gate.includes("空头") ? ["空头区·可开空","cold"] : ["中性区·不开新仓","mid"];
+document.getElementById("gate").textContent = gp[0];
+document.getElementById("gate").className = "pill " + gp[1];
+const chips = [
+  ["现金", M.cash.toFixed(0)+"U"], ["持仓", M.nOpen+"仓"],
+  ["已平仓", M.nClosed+"笔"], ["被拒(影子)", ((PAPER.shadow||{}).nClosed||0)+"笔"],
+  ["现金风险档", M.risk+"%"], ["持仓市值", (M.equity-M.cash).toFixed(0)+"U"],
+];
+document.getElementById("chips").innerHTML = chips.map(c=>`<div class="chip"><div class="k">${c[0]}</div><div class="v">${c[1]}</div></div>`).join("");
+document.getElementById("nOpen").textContent = M.nOpen + "仓";
+document.getElementById("nCl").textContent = M.nClosed + "笔全部";
+const ec = echarts.init(document.getElementById("chart"));
+ec.setOption({ backgroundColor:"transparent", textStyle:{color:"#8b949e"},
+  tooltip:{trigger:"axis"}, grid:{left:52,right:8,top:8,bottom:22},
+  xAxis:{type:"time",axisLabel:{color:"#8b949e",fontSize:9}},
+  yAxis:{type:"value",scale:true,axisLabel:{color:"#8b949e",fontSize:9},splitLine:{lineStyle:{color:"#21262d"}}},
+  series:[{type:"line",data:S.map(x=>[x.t,x.eq]),showSymbol:false,lineStyle:{color:"#58a6ff",width:1.5},areaStyle:{color:"rgba(88,166,255,0.1)"}}]});
+document.getElementById("positions").innerHTML = P.length ? P.map(p=>`<div class="pos">
+  <div class="r1"><span class="coin">${p.coin} <span class="badge ${p.side}">${p.side==="L"?"多":"空"}</span> <span style="font-size:11px;color:var(--dim)">${SETUP[p.setup]||p.setup}</span></span>
+  <span class="openR ${p.openR>0?"W":"L"}">${p.openR>0?"+":""}${p.openR}R</span></div>
+  <div class="r2"><span>入 ${p.entry}</span><span>损 ${p.stop}</span><span>现 ${p.mark}</span><span>${p.uPnl>0?"+":""}${p.uPnl}U</span></div>
+  <div class="tags">${p.partial?"<span class='tag'>✓3R已减仓</span>":""}${p.be?"<span class='tag'>✓保本锁</span>":""}<span class="tag">${p.d.slice(5)}</span></div>
+</div>`).join("") : `<div class="card empty">空仓 watching —— 等信号中${M.gate.includes("中性")?"(中性区,闸门关)":""}</div>`;
+document.getElementById("closed").innerHTML = C.length ? C.slice(0,15).map(t=>`<div class="row">
+  <span><b>${t.coin}</b> <span style="font-size:11px" class="${t.side==="L"?"W":"L"}">${t.side==="L"?"多":"空"}</span> <span style="color:var(--dim);font-size:11px">${SETUP[t.setup]||t.setup} ${t.d.slice(5)}</span></span>
+  <span class="r ${t.r>0?"W":"L"}">${t.r>0?"+":""}${t.r}R</span></div>`).join("") : `<div class="empty">尚无平仓</div>`;
+const SH = PAPER.shadow || {};
+document.getElementById("nSh").textContent = SH.nClosed || 0;
+document.getElementById("shR").textContent = (SH.sumR||0) + "R";
+setTimeout(()=>location.reload(), 300000);
+</script>
+</body>
+</html>
