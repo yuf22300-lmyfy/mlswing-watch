@@ -101,6 +101,7 @@ document.getElementById("closed").innerHTML = C.length ? C.slice(0,15).map(t=>`<
 const SH = PAPER.shadow || {};
 document.getElementById("nSh").textContent = SH.nClosed || 0;
 document.getElementById("shR").textContent = (SH.sumR||0) + "R";
+try { document.getElementById("foot").innerHTML = "滑点: " + (M.slip && M.slip.n ? M.slip.n + "笔 均" + M.slip.avgBp + "bp" : "待样本") + " · 失效开关: " + (M.health ? M.health.flag : "—") + "<br>" + document.getElementById("foot").innerHTML; } catch(e) {}
 setTimeout(()=>location.reload(), 300000);
 </script>
 </body>

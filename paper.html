@@ -37,7 +37,8 @@
   <h1>ML-Swing 实测手册 <span style="font-size:13px;color:var(--dim)">模拟盘 · 1,000U · 1% 风险/单</span></h1>
   <div class="sub"><a href="index.html">← 回测手册(905笔档案)</a> · 引擎每 5 分钟扫描,数据经 git 推送刷新(Pages 缓存约 1-10 分钟) · 开始于 <span id="st"></span> · 最后扫描 <span id="upd"></span></div>
 
-  <div class="kpis" id="kpis"></div>
+  <div id="slipLine" style="color:var(--dim);font-size:12px;margin:-8px 0 12px"></div>
+<div class="kpis" id="kpis"></div>
 
   <h2>模拟盘权益曲线</h2>
   <div class="chart" id="eq"></div>
@@ -73,6 +74,7 @@ document.getElementById("nOpen").textContent = M.nOpen;
 document.getElementById("nCl").textContent = M.nClosed;
 const ret = (M.equity / M.start - 1) * 100;
 const gatePill = M.gate.includes("多头") ? '<span class="pill hot">多头区</span>' : M.gate.includes("空头") ? '<span class="pill cold">空头区</span>' : '<span class="pill mid">中性区·不开新仓</span>';
+document.getElementById("slipLine").innerHTML = "入场滑点测量: " + (MM.slip && MM.slip.n ? "n=" + MM.slip.n + " 平均" + MM.slip.avgBp + "bp" : "暂无样本(等首笔)") + " | 失效开关(6个月Calmar<0.5→暂停): " + (MM.health ? MM.health.flag + " (ΣR180=" + MM.health.sum180 + ")" : "—");
 const kpis = [
   ["当前权益", M.equity.toFixed(2) + " U", "var(--acc)"],
   ["累计收益", (ret>=0?"+":"") + ret.toFixed(2) + "%", ret>=0?"var(--up)":"var(--dn)"],
@@ -110,6 +112,7 @@ document.getElementById('shKpi').innerHTML = [
   ['假设均值', SH.avgR===null?'—':SH.avgR+'R', SH.avgR>1?'var(--dn)':'var(--up)'],
 ].map(k=>'<div class=kpi><div class=k>'+k[0]+'</div><div class=v style=color:'+(k[2]||'var(--txt)')+'>'+k[1]+'</div></div>').join('');
 document.getElementById('tbSh').innerHTML = (PAPER.shadowClosed||[]).length ? PAPER.shadowClosed.map(t=>'<tr><td>'+t.d+'</td><td><b>'+t.coin+'</b></td><td class=side-'+t.side+'>'+(t.side==='L'?'多':'空')+'</td><td>'+(SETUP[t.setup]||t.setup)+'</td><td>'+(t.rejCorr===null||t.rejCorr===undefined?'—':t.rejCorr)+'</td><td class='+(t.r>0?'W':'L')+'>'+(t.r>0?'+':'')+t.r+'</td></tr>').join('') : '<tr><td colspan=6 style=color:var(--dim);text-align:center;padding:18px>尚无被拒信号(并发未达4仓)</td></tr>';
+const MM = PAPER.meta;
 document.getElementById("foot").innerHTML =
 `规则与回测档案完全同构:8币宇宙(BTC/ETH/SOL/BNB/XRP/DOGE/AVAX/LINK)+1H突破/回调+空头镜像+G1指数闸门;接针已移除。(20币+动量前8经1H全量回测否决:+151%/DD38% vs 8币+249%/DD29%,详见档案审计轨迹)<br>
 纸面验收标准:两周后逐笔对账——成交价 vs 信号价(滑点)、R 分布 vs 回测(26%胜率/7.3R均赢)、闸门行为。<br>
