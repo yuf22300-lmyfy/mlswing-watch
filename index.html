@@ -53,7 +53,7 @@
       <thead><tr>
         <th data-k="i">#</th><th data-k="d">日期</th><th data-k="coin">币</th><th data-k="side">方向</th>
         <th data-k="setup">买法</th><th data-k="entry">入场</th><th data-k="exit">出场</th>
-        <th data-k="hold">持有天</th><th data-k="outcome">结果</th><th data-k="r">R</th><th data-k="eq">累计权益</th>
+        <th data-k="hold">持有天</th><th data-k="outcome">结果</th><th data-k="r">R</th><th data-k="pnlU">盈亏(U)</th><th data-k="eqU">累计资金(U)</th>
       </tr></thead>
       <tbody id="tb"></tbody>
     </table>
@@ -71,6 +71,9 @@
 <script src="data.js"></script>
 <script>
 const M = ML.meta, T = ML.trades;
+const STARTU = 10000;
+{ let prev = 1; for (const t of T) { t.pnlU = STARTU * (t.eq - prev); t.eqU = STARTU * t.eq; prev = t.eq; } }
+const fmtU = v => Math.abs(v) >= 10000 ? (v / 10000).toFixed(2).replace(/.?0+$/, "") + "万U" : v.toFixed(0) + "U";
 document.getElementById("upd").textContent = M.updated;
 document.getElementById("nTr").textContent = M.trades;
 
@@ -84,7 +87,7 @@ const kpis = [
   ["总 R / 笔数", M.sumR + "R / " + M.trades + "笔", ""],
   ["模拟窗(3年)", M.isR + "R / " + M.isTrades + "笔", ""],
   ["实考窗(2年)", M.oosR + "R / " + M.oosTrades + "笔", "var(--acc)"],
-  [M.years + " 年终值(1%)", M.finalEq + "x", "var(--up)"],
+  [M.years + " 年终值(1万U起步)", fmtU(M.finalEq * STARTU) + " (" + M.finalEq + "x)", "var(--up)"],
 ];
 document.getElementById("kpis").innerHTML = kpis.map(k =>
   `<div class="kpi"><div class="k">${k[0]}</div><div class="v" style="color:${k[2]||"var(--txt)"}">${k[1]}</div></div>`).join("");
@@ -93,10 +96,10 @@ document.getElementById("kpis").innerHTML = kpis.map(k =>
 const eqC = echarts.init(document.getElementById("eqChart"));
 eqC.setOption({
   backgroundColor:"transparent", textStyle:{color:"#8b949e"},
-  tooltip:{trigger:"axis", formatter:p=>`${p[0].name}<br>权益: ${p[0].value}x`},
+  tooltip:{trigger:"axis", formatter:p=>`${p[0].name}<br>资金: ${fmtU(p[0].value*STARTU)} (${p[0].value.toFixed(1)}x)`},
   grid:{left:50,right:20,top:20,bottom:30},
   xAxis:{type:"category", data:T.map(t=>t.d), axisLabel:{color:"#8b949e"}},
-  yAxis:{type:"log", axisLabel:{color:"#8b949e", formatter:v=>v+"x"}, splitLine:{lineStyle:{color:"#21262d"}}},
+  yAxis:{type:"log", axisLabel:{color:"#8b949e", formatter:v=>fmtU(v*STARTU)}, splitLine:{lineStyle:{color:"#21262d"}}},
   series:[{type:"line", data:T.map(t=>t.eq), showSymbol:false, lineStyle:{color:"#58a6ff",width:1.5},
     areaStyle:{color:"rgba(88,166,255,0.08)"}}]
 });
@@ -131,7 +134,7 @@ function rows(){
   let list = T.map((t,i)=>({...t,i:i+1})).filter(t=>
     (!filt.coin||t.coin===filt.coin)&&(!filt.side||t.side===filt.side)&&(!filt.setup||t.setup===filt.setup)&&
     (!filt.outcome||t.outcome===filt.outcome)&&(!filt.year||t.d.slice(0,4)===filt.year));
-  const key = t=>({i:t.i,d:t.d,coin:t.coin,side:t.side,setup:t.setup,entry:t.entry??0,exit:t.exit??0,hold:t.hold??-1,outcome:t.outcome,r:t.r,eq:t.eq})[sortK];
+  const key = t=>({i:t.i,d:t.d,coin:t.coin,side:t.side,setup:t.setup,entry:t.entry??0,exit:t.exit??0,hold:t.hold??-1,outcome:t.outcome,r:t.r,pnlU:t.pnlU,eqU:t.eqU,eq:t.eq})[sortK];
   list.sort((a,b)=>{const x=key(a),y=key(b);return (x<y?-1:x>y?1:0)*(asc?1:-1);});
   return list;
 }
@@ -144,7 +147,8 @@ function render(){
     <td>${t.entry??"—"}</td><td>${t.exit??"—"}</td><td>${t.hold??"—"}</td>
     <td class="${t.outcome}">${t.outcome==="W"?"盈":t.outcome==="L"?"亏":"平"}</td>
     <td class="${t.r>0?"W":"L"}">${t.r>0?"+":""}${t.r.toFixed(2)}</td>
-    <td>${t.eq.toFixed(2)}x</td></tr>`).join("");
+    <td class="${t.pnlU>0?"W":"L"}">${t.pnlU>0?"+":""}${Math.round(t.pnlU).toLocaleString()}U</td>
+    <td><b>${fmtU(t.eqU)}</b></td></tr>`).join("");
 }
 render();
 
