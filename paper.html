@@ -48,7 +48,14 @@
     <tbody id="tbOpen"></tbody>
   </table></div>
 
-  <h2>已平仓流水(<span id="nCl"></span>)</h2>
+  <h2>影子日志 · 被4仓上限拒绝的信号(<span id="nSh"></span>笔已了结)</h2>
+<div class='kpis' style='grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:10px' id='shKpi'></div>
+<div class='tbl-box'><table>
+<thead><tr><th>日期</th><th>币</th><th>方向</th><th>买法</th><th>被拒时相关性</th><th>假设R</th></tr></thead>
+<tbody id='tbSh'></tbody>
+</table></div>
+<div class='note' style='margin-top:6px'>决策规则: 被拒均值>1R且存在低相关(<0.5)大鱼 → 升级相关性加权; 回测基准: 55笔/+1.86R均值/相关0.75/低相关大鱼0条。</div>
+<h2>已平仓流水(<span id="nCl"></span>)</h2>
   <div class="tbl-box"><table>
     <thead><tr><th>开仓日</th><th>平仓日</th><th>币</th><th>方向</th><th>买法</th><th>入场</th><th>出场</th><th>持有天</th><th>结果</th><th>R</th></tr></thead>
     <tbody id="tbCl"></tbody>
@@ -95,6 +102,14 @@ document.getElementById("tbCl").innerHTML = C.length ? C.map(t=>`<tr>
   <td class="${t.outcome}">${t.outcome==="W"?"盈":t.outcome==="L"?"亏":"平"}</td>
   <td class="${t.r>0?"W":"L"}">${t.r>0?"+":""}${t.r}</td></tr>`).join("")
   : `<tr><td colspan="10" style="color:var(--dim);text-align:center;padding:22px">尚无平仓 —— 模拟盘刚开始,等第一笔信号</td></tr>`;
+const SH = PAPER.shadow || {nClosed:0};
+document.getElementById('nSh').textContent = SH.nClosed;
+document.getElementById('shKpi').innerHTML = [
+  ['被拒了结', SH.nClosed + '笔', ''],
+  ['假设ΣR', (SH.sumR>=0?'+':'')+SH.sumR, SH.sumR>=0?'var(--up)':'var(--dn)'],
+  ['假设均值', SH.avgR===null?'—':SH.avgR+'R', SH.avgR>1?'var(--dn)':'var(--up)'],
+].map(k=>'<div class=kpi><div class=k>'+k[0]+'</div><div class=v style=color:'+(k[2]||'var(--txt)')+'>'+k[1]+'</div></div>').join('');
+document.getElementById('tbSh').innerHTML = (PAPER.shadowClosed||[]).length ? PAPER.shadowClosed.map(t=>'<tr><td>'+t.d+'</td><td><b>'+t.coin+'</b></td><td class=side-'+t.side+'>'+(t.side==='L'?'多':'空')+'</td><td>'+(SETUP[t.setup]||t.setup)+'</td><td>'+(t.rejCorr===null||t.rejCorr===undefined?'—':t.rejCorr)+'</td><td class='+(t.r>0?'W':'L')+'>'+(t.r>0?'+':'')+t.r+'</td></tr>').join('') : '<tr><td colspan=6 style=color:var(--dim);text-align:center;padding:18px>尚无被拒信号(并发未达4仓)</td></tr>';
 document.getElementById("foot").innerHTML =
 `规则与回测档案完全同构:8币宇宙(BTC/ETH/SOL/BNB/XRP/DOGE/AVAX/LINK)+1H突破/回调+空头镜像+G1指数闸门;接针已移除。(20币+动量前8经1H全量回测否决:+151%/DD38% vs 8币+249%/DD29%,详见档案审计轨迹)<br>
 纸面验收标准:两周后逐笔对账——成交价 vs 信号价(滑点)、R 分布 vs 回测(26%胜率/7.3R均赢)、闸门行为。<br>
