@@ -68,7 +68,7 @@
 <script>
 const M = PAPER.meta, P = PAPER.positions, C = PAPER.closed, S = PAPER.equitySeries;
 const SETUP = {B:"突破", P:"回调", Bs:"突破·空", Ps:"回调·空", WICK:"接针"};
-document.getElementById("upd").textContent = M.updated.replace("T"," ").slice(5,16);
+document.getElementById("upd").innerHTML = (function(){ const age=(Date.now()-Date.parse(M.updated))/60000; const c=age<=16?"#3fb950":age<=60?"#d29922":"#f85149"; return "<span style='color:"+c+"'>●</span> "+M.updated.replace("T"," ").slice(5,16); })();
 const ret = (M.equity / M.start - 1) * 100;
 document.getElementById("eq").textContent = M.equity.toFixed(2) + " U";
 document.getElementById("ret").textContent = (ret>=0?"+":"") + ret.toFixed(2) + "% · ΣR " + (M.sumR>=0?"+":"") + M.sumR + " · 胜率 " + (M.wr===null?"—":M.wr+"%");
