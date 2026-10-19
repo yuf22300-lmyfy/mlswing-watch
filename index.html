@@ -42,7 +42,8 @@
 
   <div class="kpis" id="kpis"></div>
 
-  <h2>权益曲线(1% 风险/单,逐笔复利)</h2>
+  <h2>权益曲线(1% 风险/单,落袋口径复利)</h2>
+  <div style="color:var(--dim);font-size:12px;margin:-6px 0 10px">蓝线=落袋口径(诚实算法: 并发仓的浮盈不进彼此本金, 每笔按开仓时<b>已平仓落袋的权益</b>定1%风险, 盈亏平仓日入账) · 灰虚线=旧口径逐笔连乘(重叠仓位失真,仅对照)。实盘引擎实际行为介于两者之间(浮盈计入保证金权益可开新仓): 离线逐日模拟 ×4752 / 年化 251% / MTM 口径回撤 -37.4%。</div>
   <div class="chart" id="eqChart"></div>
   <div class="chart chart2" id="yrChart"></div>
 
@@ -72,14 +73,35 @@
 <script>
 const M = ML.meta, T = ML.trades;
 const STARTU = 10000;
-{ let prev = 1; for (const t of T) { t.pnlU = STARTU * (t.eq - prev); t.eqU = STARTU * t.eq; prev = t.eq; } }
+// 诚实口径(2026-10-19 用户指出并修正): 重叠仓位不能逐笔连乘。
+// eqB = 落袋口径: 每笔开仓时按"已平仓落袋的权益"定1%风险, 盈亏平仓日入账 —— 并发仓的浮盈不进彼此本金。
+// t.eq = 旧口径(逐笔连乘, 重叠失真), 仅留作对照虚线。
+{
+  const byEntry = T.slice().sort((a,b)=> a.d<b.d?-1:1);
+  let settled = 1; const open = [];
+  const eqBmap = new Map();
+  for (const t of byEntry) {
+    open.sort((a,b)=> a.exitD<b.exitD?-1:1);
+    while (open.length && open[0].exitD <= t.d) settled += open.shift().pnl;
+    const risk = settled * 0.01;
+    open.push({ exitD: t.exitD, pnl: risk * t.r });
+    eqBmap.set(t.i ?? t.d + t.coin, settled + open.reduce((q,o)=>q+o.pnl,0));
+  }
+  open.sort((a,b)=> a.exitD<b.exitD?-1:1);
+  let finalB = settled; for (const o of open) finalB += o.pnl;
+  for (const t of T) { t.eqB = eqBmap.get(t.i ?? t.d + t.coin) ?? t.eq; }
+  let prevB = 1; for (const t of T) { t.pnlU = STARTU * (t.eqB - prevB); t.eqU = STARTU * t.eqB; prevB = t.eqB; }
+  window.FINAL_B = finalB;
+  window.CAGR_B = (Math.pow(finalB, 1/M.years) - 1) * 100;
+}
 const fmtU = v => Math.abs(v) >= 10000 ? (v / 10000).toFixed(2).replace(/.?0+$/, "") + "万U" : v.toFixed(0) + "U";
 document.getElementById("upd").textContent = M.updated;
 document.getElementById("nTr").textContent = M.trades;
 
 // KPIs
 const kpis = [
-  ["复利年化(1%风险)", "+" + M.cagr1 + "%", "var(--acc)"],
+  ["复利年化(1%风险·落袋口径)", "+" + CAGR_B.toFixed(0) + "%", "var(--acc)"],
+  ["旧口径年化(逐笔连乘,重叠失真)", "+" + M.cagr1 + "%", "var(--dim)"],
   ["计划口径区间(费+滑点+日历运气)", "65~100%/年", "#d29922"],
   ["最大回撤", M.maxDD + "%", "var(--dn)"],
   ["交易频率", M.tpy + " 笔/年", ""],
@@ -88,7 +110,7 @@ const kpis = [
   ["总 R / 笔数", M.sumR + "R / " + M.trades + "笔", ""],
   ["模拟窗(3年)", M.isR + "R / " + M.isTrades + "笔", ""],
   ["实考窗(2年)", M.oosR + "R / " + M.oosTrades + "笔", "var(--acc)"],
-  [M.years + " 年终值(1万U起步)", fmtU(M.finalEq * STARTU) + " (" + M.finalEq + "x)", "var(--up)"],
+  [M.years + " 年终值·落袋口径(1万U起步)", fmtU(FINAL_B * STARTU) + " (" + FINAL_B.toFixed(0) + "x)", "var(--up)"],
 ];
 document.getElementById("kpis").innerHTML = kpis.map(k =>
   `<div class="kpi"><div class="k">${k[0]}</div><div class="v" style="color:${k[2]||"var(--txt)"}">${k[1]}</div></div>`).join("");
@@ -101,8 +123,8 @@ eqC.setOption({
   grid:{left:50,right:20,top:20,bottom:30},
   xAxis:{type:"category", data:T.map(t=>t.d), axisLabel:{color:"#8b949e"}},
   yAxis:{type:"log", axisLabel:{color:"#8b949e", formatter:v=>fmtU(v*STARTU)}, splitLine:{lineStyle:{color:"#21262d"}}},
-  series:[{type:"line", data:T.map(t=>t.eq), showSymbol:false, lineStyle:{color:"#58a6ff",width:1.5},
-    areaStyle:{color:"rgba(88,166,255,0.08)"}}]
+  series:[{type:"line", data:T.map(t=>t.eqB), showSymbol:false, lineStyle:{color:"#58a6ff",width:1.8},
+    areaStyle:{color:"rgba(88,166,255,0.08)"}},{type:"line", data:T.map(t=>t.eq), showSymbol:false, lineStyle:{color:"#30363d",width:1,type:"dashed"}}]
 });
 const yrC = echarts.init(document.getElementById("yrChart"));
 const yk = Object.keys(M.yearly);
