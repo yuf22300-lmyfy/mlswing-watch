@@ -93,6 +93,7 @@ const STARTU = 10000;
   let prevB = 1; for (const t of T) { t.pnlU = STARTU * (t.eqB - prevB); t.eqU = STARTU * t.eqB; prevB = t.eqB; }
   window.FINAL_B = finalB;
   window.CAGR_B = (Math.pow(finalB, 1/M.years) - 1) * 100;
+  { const CC = ML.curveC || []; let j = -1; window.EQC = T.map(t => { while (j + 1 < CC.length && CC[j + 1][0] <= t.d) j++; return j >= 0 ? CC[j][1] : 1; }); }
 }
 const fmtU = v => Math.abs(v) >= 10000 ? (v / 10000).toFixed(2).replace(/.?0+$/, "") + "万U" : v.toFixed(0) + "U";
 document.getElementById("upd").textContent = M.updated;
@@ -124,7 +125,7 @@ eqC.setOption({
   xAxis:{type:"category", data:T.map(t=>t.d), axisLabel:{color:"#8b949e"}},
   yAxis:{type:"log", axisLabel:{color:"#8b949e", formatter:v=>fmtU(v*STARTU)}, splitLine:{lineStyle:{color:"#21262d"}}},
   series:[{type:"line", data:T.map(t=>t.eqB), showSymbol:false, lineStyle:{color:"#58a6ff",width:1.8},
-    areaStyle:{color:"rgba(88,166,255,0.08)"}},{type:"line", data:T.map(t=>t.eq), showSymbol:false, lineStyle:{color:"#30363d",width:1,type:"dashed"}}]
+    areaStyle:{color:"rgba(88,166,255,0.08)"}},{type:"line", data:T.map(t=>t.eq), showSymbol:false, lineStyle:{color:"#30363d",width:1,type:"dashed"}},{type:"line", data:window.EQC, showSymbol:false, lineStyle:{color:"#2ea043",width:1.3}}]
 });
 const yrC = echarts.init(document.getElementById("yrChart"));
 const yk = Object.keys(M.yearly);
