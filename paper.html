@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ML-Swing 实测手册 · 模拟盘 1000U</title>
+<title>ML-Swing 实盘手册 · OKX 实时</title>
 <script src="echarts.min.js"></script>
 <style>
   :root { --bg:#0d1117; --card:#161b22; --line:#30363d; --txt:#e6edf3; --dim:#8b949e; --up:#3fb950; --dn:#f85149; --acc:#58a6ff; }
@@ -34,13 +34,13 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>ML-Swing 实测手册 <span style="font-size:13px;color:var(--dim)">模拟盘 · 1,000U · 1% 风险/单</span></h1>
+  <h1>ML-Swing 实盘手册 <span style="font-size:13px;color:var(--dim)">OKX 实盘 · 真实账户 · 1% 风险/单</span></h1>
   <div class="sub"><a href="index.html">← 回测手册(913笔档案)</a> · 引擎每 5 分钟扫描,数据经 git 推送刷新(Pages 缓存约 1-10 分钟) · 开始于 <span id="st"></span> · 最后扫描 <span id="upd"></span></div>
 
   <div id="slipLine" style="color:var(--dim);font-size:12px;margin:-8px 0 12px"></div>
 <div class="kpis" id="kpis"></div>
 
-  <h2>模拟盘权益曲线</h2>
+  <h2>实盘权益曲线(OKX 账户实时)</h2>
   <div class="chart" id="eq"></div>
 
   <h2>当前持仓(<span id="nOpen"></span>)</h2>
@@ -103,7 +103,7 @@ document.getElementById("tbCl").innerHTML = C.length ? C.map(t=>`<tr>
   <td>${SETUP[t.setup]||t.setup}</td><td>${t.entry}</td><td>${t.exit}</td><td>${t.hold}</td>
   <td class="${t.outcome}">${t.outcome==="W"?"盈":t.outcome==="L"?"亏":"平"}</td>
   <td class="${t.r>0?"W":"L"}">${t.r>0?"+":""}${t.r}</td></tr>`).join("")
-  : `<tr><td colspan="10" style="color:var(--dim);text-align:center;padding:22px">尚无平仓 —— 模拟盘刚开始,等第一笔信号</td></tr>`;
+  : `<tr><td colspan="10" style="color:var(--dim);text-align:center;padding:22px">尚无平仓 —— 实盘等第一笔信号</td></tr>`;
 const SH = PAPER.shadow || {nClosed:0};
 document.getElementById('nSh').textContent = SH.nClosed;
 document.getElementById('shKpi').innerHTML = [
@@ -116,7 +116,7 @@ const MM = PAPER.meta;
 document.getElementById("foot").innerHTML =
 `规则与回测档案完全同构:8币宇宙(BTC/ETH/SOL/BNB/XRP/DOGE/AVAX/LINK)+1H突破/回调+空头镜像+G1指数闸门;接针已移除。(20币+动量前8经1H全量回测否决:+151%/DD38% vs 8币+249%/DD29%,详见档案审计轨迹)<br>
 纸面验收标准:两周后逐笔对账——成交价 vs 信号价(滑点)、R 分布 vs 回测(26%胜率/7.3R均赢)、闸门行为。<br>
-引擎:workspace/_mlswing_live/mlswing_paper.js · 计划任务 MLSwing_Paper 每5分钟 · 状态 state.json · 免责:模拟数据,非投资建议。`;
+引擎:workspace/_mlswing_live/mlswing_paper.js · 计划任务 MLSwing_Paper 每5分钟 · 状态 state.json · 免责:真实交易数据,非投资建议。`;
 </script>
 </body>
 </html>
