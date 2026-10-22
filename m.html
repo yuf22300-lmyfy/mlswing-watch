@@ -72,7 +72,7 @@ document.getElementById("upd").innerHTML = (function(){ const age=(Date.now()-Da
 const ret = (M.equity / M.start - 1) * 100;
 document.getElementById("eq").textContent = M.equity.toFixed(2) + " U";
 document.getElementById("ret").textContent = (ret>=0?"+":"") + ret.toFixed(2) + "% · ΣR " + (M.sumR>=0?"+":"") + M.sumR + " · 胜率 " + (M.wr===null?"—":M.wr+"%");
-const gp = M.gate.includes("多头") ? ["多头区·可开多","hot"] : M.gate.includes("空头") ? ["空头区·可开空","cold"] : ["中性区·不开新仓","mid"];
+const gp = M.gate.includes("多头") ? ["多头区·可开多","cold"] : M.gate.includes("空头") ? ["空头区·可开空","hot"] : ["中性区·不开新仓","mid"];
 document.getElementById("gate").textContent = gp[0];
 document.getElementById("gate").className = "pill " + gp[1];
 const chips = [

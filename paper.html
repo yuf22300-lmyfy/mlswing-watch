@@ -73,7 +73,7 @@ document.getElementById("upd").innerHTML = (function(){ const age=(Date.now()-Da
 document.getElementById("nOpen").textContent = M.nOpen;
 document.getElementById("nCl").textContent = M.nClosed;
 const ret = (M.equity / M.start - 1) * 100;
-const gatePill = M.gate.includes("多头") ? '<span class="pill hot">多头区</span>' : M.gate.includes("空头") ? '<span class="pill cold">空头区</span>' : '<span class="pill mid">中性区·不开新仓</span>';
+const gatePill = M.gate.includes("多头") ? '<span class="pill cold">多头区</span>' : M.gate.includes("空头") ? '<span class="pill hot">空头区</span>' : '<span class="pill mid">中性区·不开新仓</span>';
 document.getElementById("slipLine").innerHTML = "入场滑点测量: " + (MM.slip && MM.slip.n ? "n=" + MM.slip.n + " 平均" + MM.slip.avgBp + "bp" : "暂无样本(等首笔)") + " | 失效开关(6个月Calmar<0.5→暂停): " + (MM.health ? MM.health.flag + " (ΣR180=" + MM.health.sum180 + ")" : "—");
 const kpis = [
   ["当前权益", M.equity.toFixed(2) + " U", "var(--acc)"],
