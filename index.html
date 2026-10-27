@@ -60,6 +60,27 @@
     </table>
   </div>
 
+  <h2>⚙ 执行成本敏感性 · 「亏损都是1.2R」情景(2026-10-28)</h2>
+  <div class="card" style="line-height:1.9">
+    <div style="color:var(--dim);font-size:12px;margin-bottom:8px">依据: 实盘首笔SOL实测(2026-10-27)——理论-1.00R止损实际-1.20R = 入场滑点0.093R+止损滑点0.015R+手续费0.103R−资金费0.010R。方法: 950笔书逐笔亏损×1.2(均亏-1.03R→-1.23R), 赢单/BE不动, 与手册完全同口径重连乘(1%风险/笔)。基准行按本表法重算(与顶部KPI 255%差2pp=年数取整口径差), 前后对比以本表内部为准。</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="color:var(--dim);text-align:left;border-bottom:1px solid var(--line)">
+        <th style="padding:6px 10px">情景</th><th style="padding:6px 10px">均亏</th><th style="padding:6px 10px">ΣR</th><th style="padding:6px 10px">年化(A口径)</th><th style="padding:6px 10px">maxDD</th><th style="padding:6px 10px">终值(1000U起)</th></tr></thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #21262d"><td style="padding:6px 10px">基准(回测书)</td><td style="padding:6px 10px">-1.03R</td><td style="padding:6px 10px">1033</td><td style="padding:6px 10px;color:var(--up)">257%</td><td style="padding:6px 10px">29.4%</td><td style="padding:6px 10px">×5,077</td></tr>
+        <tr style="border-bottom:1px solid #21262d;background:rgba(88,166,255,0.06)"><td style="padding:6px 10px"><b>亏损×1.2(实盘实测口径)</b></td><td style="padding:6px 10px">-1.23R</td><td style="padding:6px 10px">903</td><td style="padding:6px 10px;color:var(--up)">194%</td><td style="padding:6px 10px">34.8%</td><td style="padding:6px 10px">×1,365</td></tr>
+        <tr style="border-bottom:1px solid #21262d"><td style="padding:6px 10px">亏损×1.2 + 赢单-0.2R(赢单同担成本)</td><td style="padding:6px 10px">-1.23R</td><td style="padding:6px 10px">846</td><td style="padding:6px 10px;color:var(--up)">171%</td><td style="padding:6px 10px">37.0%</td><td style="padding:6px 10px">×796</td></tr>
+        <tr><td style="padding:6px 10px">参照: 亏损×1.31(10-27旧口径,双倍计费事故前)</td><td style="padding:6px 10px">-1.35R</td><td style="padding:6px 10px">832</td><td style="padding:6px 10px;color:var(--up)">164%</td><td style="padding:6px 10px">39.9%</td><td style="padding:6px 10px">×662</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:12px;line-height:1.8">
+      ① <b>1.2R不是致命参数</b>——年化-63pp、maxDD+5.4pp, 系统仍然强阳性;<br>
+      ② 赢单同担成本比亏单加深更伤(194%→171%再-23pp)——执行质量的观察优先级在赢单滑点;<br>
+      ③ <b>归零临界=均亏2.50R(≈2.4倍)</b>——距实测1.23R有近一倍安全边际, 亏损口径不是本策略的死穴;<br>
+      ④ 每笔期望 1.04R→0.89R(-15%); 30笔检查点把实盘均亏对照本表落行, 若显著劣于-1.23R行再查执行。
+    </div>
+  </div>
+
   <h2>策略规则(回测实现口径)</h2>
   <div class="card" id="rules"></div>
 
