@@ -39,6 +39,7 @@
   <div class="sub"><a href="index.html">← 回测手册(913笔档案)</a> · 引擎每 5 分钟扫描,数据经 git 推送刷新(Pages 缓存约 1-10 分钟) · 开始于 <span id="st"></span> · 最后扫描 <span id="upd"></span></div>
 
   <div id="slipLine" style="color:var(--dim);font-size:12px;margin:-8px 0 12px"></div>
+  <div id="fbLine" style="display:none;color:#f0b90b;font-size:12px;margin:-8px 0 12px;background:rgba(240,185,11,0.08);padding:8px 10px;border-radius:6px">⚠ 本轮LIVE-VIEW拉取失败且无有效缓存——以下数据为<b>1000U模拟账本回退口径</b>,非实盘账户!下一扫(≤5分钟)自动恢复,持续显示=网络故障,查exec_log。</div>
 <div class="kpis" id="kpis"></div>
 
   <h2>🎯 开单点位(每5分钟刷新 · 触发线=昨日高/低,每天UTC收盘重置·碰线时间为北京时间)</h2>
@@ -84,6 +85,7 @@ document.getElementById("nOpen").textContent = M.nOpen;
 document.getElementById("nCl").textContent = M.nClosed;
 const ret = (M.equity / M.start - 1) * 100;
 const gatePill = M.gate.includes("多头") ? '<span class="pill cold">多头区</span>' : M.gate.includes("空头") ? '<span class="pill hot">空头区</span>' : '<span class="pill mid">中性区·不开新仓</span>';
+if (M.liveFallback) { const fb = document.getElementById("fbLine"); if (fb) fb.style.display = "block"; }
 document.getElementById("slipLine").innerHTML = "入场滑点测量: " + (MM.slip && MM.slip.n ? "n=" + MM.slip.n + " 平均" + MM.slip.avgBp + "bp" : "暂无样本(等首笔)") + " | 失效开关(6个月Calmar<0.5→暂停): " + (MM.health ? MM.health.flag + " (ΣR180=" + MM.health.sum180 + ")" : "—");
 const kpis = [
   ["当前权益", M.equity.toFixed(2) + " U", "var(--acc)"],
