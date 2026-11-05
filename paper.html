@@ -116,7 +116,7 @@ document.getElementById("tbOpen").innerHTML = P.length ? P.map(p=>`<tr>
   <td>${SETUP[p.setup]||p.setup}</td><td>${p.entry}</td><td>${p.stop}</td><td>${p.mark}</td>
   <td class="${p.openR>0?"W":"L"}">${p.openR>0?"+":""}${p.openR}</td>
   <td class="${p.uPnl>0?"W":"L"}">${p.uPnl>0?"+":""}${p.uPnl}U</td>
-  <td>${p.partial?"✓已减":"—"}</td><td>${p.be?"✓":"—"}</td></tr>`).join("")
+  <td>${p.partial?"✓触3R·全仓跟踪":"—"}</td><td>${p.be?"✓":"—"}</td></tr>`).join("")
   : `<tr><td colspan="11" style="color:var(--dim);text-align:center;padding:22px">空仓 watching —— 引擎每 5 分钟检查突破/回调信号${M.gate.includes("中性")?"(当前中性区,闸门关闭)":""}</td></tr>`;
 document.getElementById("tbCl").innerHTML = C.length ? C.map(t=>`<tr>
   <td>${t.d}</td><td>${t.exitD}</td><td><b>${t.coin}</b></td><td class="side-${t.side}">${t.side==="L"?"多":"空"}</td>
