@@ -49,7 +49,7 @@
 
   <h2>当前持仓(<span id="nOpen"></span>)</h2>
   <div class="tbl-box"><table>
-    <thead><tr><th>开仓日</th><th>币</th><th>方向</th><th>买法</th><th>入场</th><th>止损</th><th>现价</th><th>浮动R</th><th>浮盈U</th><th>3R减仓</th><th>保本锁</th></tr></thead>
+    <thead><tr><th>开仓日</th><th>币</th><th>方向</th><th>买法</th><th>入场</th><th>止损</th><th>保本线</th><th>现价</th><th>浮动R</th><th>浮盈U</th><th>3R减仓</th><th>保本锁</th></tr></thead>
     <tbody id="tbOpen"></tbody>
   </table></div>
 
@@ -113,18 +113,18 @@ ec.setOption({ backgroundColor:"transparent", textStyle:{color:"#8b949e"},
 window.addEventListener("resize",()=>ec.resize());
 document.getElementById("tbOpen").innerHTML = P.length ? P.map(p=>`<tr>
   <td>${p.d}</td><td><b>${p.coin}</b></td><td class="side-${p.side}">${p.side==="L"?"多":"空"}</td>
-  <td>${SETUP[p.setup]||p.setup}</td><td>${p.entry}</td><td>${p.stop}</td><td>${p.mark}</td>
+  <td>${SETUP[p.setup]||p.setup}</td><td>${p.entry}</td><td>${p.stop}</td><td>${p.be && p.effStop ? "<b style=color:#3fb950>" + p.effStop + "</b>" : "—"}</td><td>${p.mark}</td>
   <td class="${p.openR>0?"W":"L"}">${p.openR>0?"+":""}${p.openR}</td>
   <td class="${p.uPnl>0?"W":"L"}">${p.uPnl>0?"+":""}${p.uPnl}U</td>
   <td>${p.partial?"✓触3R·全仓跟踪":"—"}</td><td>${p.be?"✓":"—"}</td></tr>`).join("")
-  : `<tr><td colspan="11" style="color:var(--dim);text-align:center;padding:22px">空仓 watching —— 引擎每 5 分钟检查突破/回调信号${M.gate.includes("中性")?"(当前中性区,闸门关闭)":""}</td></tr>`;
+  : `<tr><td colspan="12" style="color:var(--dim);text-align:center;padding:22px">空仓 watching —— 引擎每 5 分钟检查突破/回调信号${M.gate.includes("中性")?"(当前中性区,闸门关闭)":""}</td></tr>`;
 document.getElementById("tbCl").innerHTML = C.length ? C.map(t=>`<tr>
   <td>${t.d}</td><td>${t.exitD}</td><td><b>${t.coin}</b></td><td class="side-${t.side}">${t.side==="L"?"多":"空"}</td>
   <td>${SETUP[t.setup]||t.setup}</td><td>${t.entry}</td><td>${t.exit}</td><td>${t.hold}</td>
   <td class="${t.outcome}">${t.outcome==="W"?"盈":t.outcome==="L"?"亏":"平"}</td>
   <td class="${t.r>0?"W":"L"}">${t.r>0?"+":""}${t.r}</td>
   <td class="${(t.pnlU||0)>0?"W":"L"}">${t.pnlU===undefined||t.pnlU===null?"—":(t.pnlU>0?"+":"")+t.pnlU.toFixed(2)+"U"}</td></tr>`).join("")
-  : `<tr><td colspan="11" style="color:var(--dim);text-align:center;padding:22px">尚无平仓 —— 实盘等第一笔信号</td></tr>`;
+  : `<tr><td colspan="12" style="color:var(--dim);text-align:center;padding:22px">尚无平仓 —— 实盘等第一笔信号</td></tr>`;
 const SH = PAPER.shadow || {nClosed:0};
 document.getElementById('nSh').textContent = SH.nClosed;
 document.getElementById('shKpi').innerHTML = [
