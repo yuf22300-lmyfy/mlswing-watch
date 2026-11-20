@@ -1,1 +1,1 @@
-const STATUS = { lastRun: '2026-11-20T06:01:16.347Z', taskNextRun: '11-20 14:06', taskState: 'Ready', nodeExit: 0, synced: '2026-11-20T14:01:17.3889762+08:00' };
+const STATUS = { lastRun: '2026-11-20T06:51:16.592Z', taskNextRun: '11-20 15:01', taskState: 'Ready', nodeExit: 1, synced: '2026-11-20T14:56:26.5355571+08:00' };
